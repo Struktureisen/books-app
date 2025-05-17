@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Home, Search, Library, Users, Settings } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 type IconProps = {
   color: string;
@@ -8,16 +9,23 @@ type IconProps = {
 };
 
 export default function TabLayout() {
+  const { theme, isDarkMode } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: isDarkMode ? '#fff' : '#000',
+        tabBarInactiveTintColor: isDarkMode ? '#888' : '#666',
+        tabBarStyle: {
+          backgroundColor: theme.card,
+          borderTopColor: theme.border,
+        },
         headerStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: theme.card,
         },
         headerTitleStyle: {
           fontWeight: 'bold',
+          color: theme.text,
         },
       }}
     >

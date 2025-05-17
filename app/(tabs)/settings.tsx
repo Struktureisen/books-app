@@ -1,28 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function SettingsScreen() {
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const { isDarkMode, toggleDarkMode, theme } = useTheme();
   const [notifications, setNotifications] = React.useState(true);
   const [readingGoals, setReadingGoals] = React.useState(true);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Darstellung</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.section, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Darstellung</Text>
         <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Dunkler Modus</Text>
+          <Text style={[styles.settingLabel, { color: theme.text }]}>Dunkler Modus</Text>
           <Switch
             value={isDarkMode}
-            onValueChange={setIsDarkMode}
+            onValueChange={toggleDarkMode}
           />
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Benachrichtigungen</Text>
+      <View style={[styles.section, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Benachrichtigungen</Text>
         <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Push-Benachrichtigungen</Text>
+          <Text style={[styles.settingLabel, { color: theme.text }]}>Push-Benachrichtigungen</Text>
           <Switch
             value={notifications}
             onValueChange={setNotifications}
@@ -30,10 +31,10 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Leseziele</Text>
+      <View style={[styles.section, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Leseziele</Text>
         <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Leseziel-Erinnerungen</Text>
+          <Text style={[styles.settingLabel, { color: theme.text }]}>Leseziel-Erinnerungen</Text>
           <Switch
             value={readingGoals}
             onValueChange={setReadingGoals}
@@ -41,11 +42,11 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App-Information</Text>
+      <View style={[styles.section, { borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>App-Information</Text>
         <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>1.0.0</Text>
+          <Text style={[styles.infoLabel, { color: theme.text }]}>Version</Text>
+          <Text style={[styles.infoValue, { color: theme.text }]}>1.0.0</Text>
         </View>
       </View>
     </ScrollView>
@@ -55,18 +56,15 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   section: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#000',
   },
   settingItem: {
     flexDirection: 'row',
@@ -76,7 +74,6 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: '#333',
   },
   infoItem: {
     flexDirection: 'row',
@@ -86,10 +83,8 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 16,
-    color: '#333',
   },
   infoValue: {
     fontSize: 16,
-    color: '#666',
   },
 });
