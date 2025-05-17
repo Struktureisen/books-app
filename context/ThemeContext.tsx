@@ -1,33 +1,45 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import React, { createContext, useContext, useState } from 'react';
+
+type Theme = {
+  background: string;
+  text: string;
+  textMuted: string;
+  border: string;
+  card: string;
+};
+
+const lightTheme: Theme = {
+  background: '#ffffff',
+  text: '#000000',
+  textMuted: '#666666',
+  border: '#e1e1e1',
+  card: '#ffffff',
+};
+
+const darkTheme: Theme = {
+  background: '#1a1a1a',
+  text: '#ffffff',
+  textMuted: '#999999',
+  border: '#333333',
+  card: '#2a2a2a',
+};
 
 type ThemeContextType = {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  theme: {
-    background: string;
-    text: string;
-    border: string;
-    card: string;
-  };
+  theme: Theme;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
-
-  const theme = {
-    background: isDarkMode ? '#1a1a1a' : '#ffffff',
-    text: isDarkMode ? '#ffffff' : '#000000',
-    border: isDarkMode ? '#333333' : '#eeeeee',
-    card: isDarkMode ? '#2d2d2d' : '#ffffff',
-  };
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
+    setIsDarkMode(!isDarkMode);
   };
+
+  const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode, theme }}>
