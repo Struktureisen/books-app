@@ -1,6 +1,7 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Search, Library, Users, Settings } from 'lucide-react-native';
+import { Home, Library, Search, Settings, Users } from 'lucide-react-native';
+import React from 'react';
+import { Platform } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 
 type IconProps = {
@@ -14,33 +15,54 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isDarkMode ? '#fff' : '#000',
+        tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: isDarkMode ? '#888' : '#666',
         tabBarStyle: {
           backgroundColor: theme.card,
           borderTopColor: theme.border,
+          elevation: 0,
+          shadowOpacity: 0.1,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         headerStyle: {
           backgroundColor: theme.card,
+          elevation: 0,
+          shadowOpacity: 0.1,
         },
         headerTitleStyle: {
           fontWeight: 'bold',
           color: theme.text,
+          fontSize: 18,
         },
+        headerShown: true,
+        tabBarShowLabel: true,
+        tabBarHideOnKeyboard: true,
+        lazy: true,
+        freezeOnBlur: Platform.OS === 'android',
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }: IconProps) => <Home size={size} color={color} />,
+          href: null,
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="home"
         options={{
-          title: 'Suche',
+          title: 'Home',
+          tabBarIcon: ({ color, size }: IconProps) => <Home size={size} color={color} />,
+          headerTitle: 'Buch App',
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          title: 'Entdecken',
           tabBarIcon: ({ color, size }: IconProps) => <Search size={size} color={color} />,
+          headerTitle: 'Bücher entdecken',
         }}
       />
       <Tabs.Screen
@@ -48,6 +70,7 @@ export default function TabLayout() {
         options={{
           title: 'Meine Bücher',
           tabBarIcon: ({ color, size }: IconProps) => <Library size={size} color={color} />,
+          headerTitle: 'Meine Bibliothek',
         }}
       />
       <Tabs.Screen
@@ -55,6 +78,7 @@ export default function TabLayout() {
         options={{
           title: 'Community',
           tabBarIcon: ({ color, size }: IconProps) => <Users size={size} color={color} />,
+          headerTitle: 'Community',
         }}
       />
       <Tabs.Screen
@@ -62,6 +86,7 @@ export default function TabLayout() {
         options={{
           title: 'Einstellungen',
           tabBarIcon: ({ color, size }: IconProps) => <Settings size={size} color={color} />,
+          headerTitle: 'Einstellungen',
         }}
       />
     </Tabs>
