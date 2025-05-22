@@ -28,7 +28,7 @@ const BookCard = ({
   showWishlistButton
 }: BookCardProps) => {
   const { theme } = useTheme();
-  const { getBookStatus, toggleWishlist, isInWishlist, updateBookStatus, removeBook } = useBooks();
+  const { addBook, toggleWishlist, isInWishlist, getBookStatus, updateBookStatus, removeBook } = useBooks();
   const currentStatus = book.id ? getBookStatus(book.id) : null;
   const inWishlist = book.id ? isInWishlist(book.id) : false;
   const [isProcessingWishlist, setIsProcessingWishlist] = useState(false);
@@ -42,13 +42,26 @@ const BookCard = ({
   const thumbnailUrl = getSecureImageUrl(book.imageLinks?.thumbnail);
 
   const handleWishlistToggle = (event: any) => {
-    event.stopPropagation();
-    if (book.id && !isProcessingWishlist) {
-      setIsProcessingWishlist(true);
-      toggleWishlist(book.id);
-      setTimeout(() => setIsProcessingWishlist(false), 500);
-    }
+  event.stopPropagation();
+  if (!book.id || isProcessingWishlist) return;
+
+  setIsProcessingWishlist(true);
+
+  const bookWithStatus = {
+    ...book,
+    id: book.id,
+    status: getBookStatus(book.id) || 'wantToRead',
+    ownership: 'wishlist',
+    addedAt: Date.now(),
   };
+
+  addBook(bookWithStatus, 'wantToRead');
+  toggleWishlist(book.id);
+
+  setTimeout(() => setIsProcessingWishlist(false), 500);
+};
+
+
 
   const handleStatusSelect = (status: ReadingStatus) => {
     if (book.id) {
