@@ -1,5 +1,13 @@
 import React from 'react';
-import { Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, typography } from '../styles/designSystem';
 import { ReadingStatus } from '../types';
@@ -36,11 +44,11 @@ export default function BookStatusModal({
       onPress={() => onStatusSelect(status)}
       testID={`status-button-${status}`}
     >
-      <Text 
+      <Text
         style={[
-          styles.buttonText, 
+          styles.buttonText,
           { color: theme.text },
-          currentStatus === status && { color: theme.text }
+          currentStatus === status && { color: theme.text },
         ]}
       >
         {label}
@@ -57,48 +65,47 @@ export default function BookStatusModal({
       testID="book-status-modal"
     >
       <View style={styles.overlay}>
-        <View 
-          style={[
-            styles.content, 
-            { 
-              backgroundColor: theme.card,
-              borderColor: theme.border,
-            }
-          ]}
-        >
-          <Text 
-            style={[styles.title, { color: theme.text }]}
-            testID="modal-title"
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
+
+        <TouchableWithoutFeedback onPress={() => {}}>
+          <View
+            style={[
+              styles.content,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+              },
+            ]}
           >
-            {title}
-          </Text>
-
-          {renderStatusButton('reading', 'Aktuell am lesen')}
-          {renderStatusButton('read', 'Als gelesen markieren')}
-          {renderStatusButton('wantToRead', 'Möchte ich lesen')}
-
-          {currentStatus && onRemove && (
-            <TouchableOpacity
-              style={[styles.button, styles.removeButton]}
-              onPress={onRemove}
-              testID="remove-button"
-            >
-              <Text style={[styles.buttonText, { color: theme.error }]}>
-                Entfernen
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={onClose}
-            testID="cancel-button"
-          >
-            <Text style={[styles.buttonText, { color: theme.textMuted }]}>
-              Abbrechen
+            <Text style={[styles.title, { color: theme.text }]} testID="modal-title">
+              {title}
             </Text>
-          </TouchableOpacity>
-        </View>
+
+            {renderStatusButton('reading', 'Aktuell am lesen')}
+            {renderStatusButton('read', 'Als gelesen markieren')}
+            {renderStatusButton('wantToRead', 'Möchte ich lesen')}
+
+            {currentStatus && onRemove && (
+              <TouchableOpacity
+                style={[styles.button, styles.removeButton]}
+                onPress={onRemove}
+                testID="remove-button"
+              >
+                <Text style={[styles.buttonText, { color: theme.error }]}>Entfernen</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onClose}
+              testID="cancel-button"
+            >
+              <Text style={[styles.buttonText, { color: theme.textMuted }]}>Abbrechen</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableWithoutFeedback>
       </View>
     </Modal>
   );
@@ -107,25 +114,23 @@ export default function BookStatusModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   content: {
     width: '80%',
     padding: spacing.lg,
     borderRadius: 12,
     borderWidth: 1,
+    zIndex: 2,
     ...Platform.select({
-      android: {
-        elevation: 5,
-      },
-      ios: {
-        zIndex: 1,
-      },
-      web: {
-        zIndex: 1,
-      },
+      android: { elevation: 5 },
+      ios: { zIndex: 1 },
+      web: { zIndex: 1 },
     }),
   },
   title: {

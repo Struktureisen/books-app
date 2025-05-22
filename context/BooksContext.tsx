@@ -95,8 +95,12 @@ export const BooksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const currentlyReading = books.filter(book => book.status === 'reading');
   const readBooks = books.filter(book => book.status === 'read');
-  const wantToReadBooks = books.filter(book => book.status === 'wantToRead');
-  const wishlistBooks = books.filter(book => book.ownership === 'wishlist');
+  const wantToReadBooks = books.filter(
+  book => book.status === 'wantToRead' && book.ownership === 'owned'
+);
+  const wishlistBooks = books.filter(
+  book => book.ownership === 'wishlist'
+);
 
   useEffect(() => {
     const fetchRecommendations = async () => {

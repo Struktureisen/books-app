@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import BookCard from '../../components/BookCard';
+import BookDetailModal from '../../components/BookDetailModal';
 import BookStatusModal from '../../components/BookStatusModal';
 import { useBooks } from '../../context';
 import { useTheme } from '../../context/ThemeContext';
@@ -16,6 +17,7 @@ export default function DiscoverScreen() {
 
   const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   const searchBooks = async () => {
     if (!searchQuery.trim()) return;
@@ -34,9 +36,22 @@ export default function DiscoverScreen() {
 
       if (json.items && json.items.length > 0) {
         const books = json.items.map((item: any) => ({
-          id: item.id,
-          ...item.volumeInfo
-        }));
+  id: item.id,
+  title: item.volumeInfo.title,
+  authors: item.volumeInfo.authors,
+  description: item.volumeInfo.description,
+  imageLinks: item.volumeInfo.imageLinks,
+  publishedDate: item.volumeInfo.publishedDate,
+  publisher: item.volumeInfo.publisher,
+  pageCount: item.volumeInfo.pageCount,
+  categories: item.volumeInfo.categories,
+  averageRating: item.volumeInfo.averageRating,
+  status: undefined,
+  ownership: 'wishlist',
+  addedAt: Date.now(),
+}));
+
+
         setSearchResults(books);
       } else {
         setSearchResults([]);
@@ -50,9 +65,10 @@ export default function DiscoverScreen() {
   };
 
   const handleBookPress = (book: BookData) => {
-    setSelectedBook(book);
-    setModalVisible(true);
-  };
+  setSelectedBook(book);
+  setDetailModalVisible(true); // zeigt Detailmodal!
+};
+
 
   const handleStatusSelect = (status: ReadingStatus) => {
     if (selectedBook) {
@@ -152,6 +168,18 @@ export default function DiscoverScreen() {
         </View>
       )}
 
+            {selectedBook && (
+        <BookDetailModal
+          book={selectedBook}
+          visible={detailModalVisible}
+          onClose={() => setDetailModalVisible(false)}
+          onOpenStatusModal={() => {
+            setDetailModalVisible(false);
+            setTimeout(() => setModalVisible(true), 300);
+          }}
+        />
+      )}
+
       {selectedBook && (
         <BookStatusModal
           visible={modalVisible}
@@ -163,6 +191,7 @@ export default function DiscoverScreen() {
         />
       )}
     </ScrollView>
+
   );
 }
 
@@ -171,7 +200,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: 10,
     gap: spacing.sm,
   },
   searchInput: {
@@ -191,19 +221,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   section: {
-    padding: spacing.md,
+    paddingTop: spacing.sm,
   },
   sectionTitle: {
     ...typography.h2,
     marginBottom: spacing.md,
+    paddingHorizontal: 10,
   },
   resultsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
+    justifyContent: 'flex-start',
+    paddingHorizontal: 5,
+    gap: 10,
   },
   bookItem: {
-    width: '48%',
+    width: 152,
+    margin: 5,
   },
 });

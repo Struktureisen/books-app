@@ -1,40 +1,39 @@
-import { Link, router } from 'expo-router';
-import React from 'react';
+import { Link } from 'expo-router';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BookDetailModal from '../../components/BookDetailModal';
+import BookStatusModal from '../../components/BookStatusModal';
 import { useBooks } from '../../context/BooksContext';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function HomeScreen() {
   const { theme } = useTheme();
-  const { currentlyReading, wantToReadBooks, recommendations, toggleWishlist, isInWishlist } = useBooks();
+  const { currentlyReading, wantToReadBooks, recommendations, toggleWishlist, isInWishlist, addBook, getBookStatus, removeBook } = useBooks();
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Username Section */}
       <View style={styles.header}>
-        <Text style={[styles.welcomeText, { color: theme.text }]}>
-          Willkommen zurück,
-        </Text>
-        <Text style={[styles.username, { color: theme.text }]}>
-          Benutzer
-        </Text>
+        <Text style={[styles.welcomeText, { color: theme.text }]}>Willkommen zurück,</Text>
+        <Text style={[styles.username, { color: theme.text }]}>Benutzer</Text>
       </View>
 
       {/* Currently Reading Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          Aktuell gelesen
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Aktuell gelesen</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {currentlyReading.map((book) => (
             <View key={book.id} style={styles.recommendationCard}>
               <View style={styles.bookCard}>
-                <TouchableOpacity onPress={() => book.id && router.push(`/book/${book.id}`)}>
+                <TouchableOpacity onPress={() => {
+                  setSelectedBook(book);
+                  setDetailModalVisible(true);
+                }}>
                   {book.imageLinks?.thumbnail ? (
-                    <Image
-                      source={{ uri: book.imageLinks.thumbnail.replace('http://', 'https://') }}
-                      style={styles.bookCover}
-                    />
+                    <Image source={{ uri: book.imageLinks.thumbnail.replace('http://', 'https://') }} style={styles.bookCover} />
                   ) : (
                     <View style={[styles.bookCover, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
                       <Text style={{ color: theme.textMuted }}>No Cover</Text>
@@ -42,23 +41,16 @@ export default function HomeScreen() {
                   )}
                 </TouchableOpacity>
                 <View style={styles.bookInfo}>
-                  <Text style={[styles.bookTitle, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">
-                    {book.title}
-                  </Text>
+                  <Text style={[styles.bookTitle, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">{book.title}</Text>
                   <View style={styles.bookFooter}>
                     {book.authors && (
-                      <Text style={[styles.bookAuthor, { color: theme.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
-                        {book.authors.join(', ')}
-                      </Text>
+                      <Text style={[styles.bookAuthor, { color: theme.textMuted }]} numberOfLines={1} ellipsizeMode="tail">{book.authors.join(', ')}</Text>
                     )}
                     <TouchableOpacity
                       style={[styles.wishlistButton, { backgroundColor: theme.card }]}
                       onPress={() => book.id && toggleWishlist(book.id)}
                     >
-                      <Text style={[
-                        styles.wishlistIcon,
-                        { color: book.id && isInWishlist(book.id) ? theme.primary : theme.textMuted }
-                      ]}>★</Text>
+                      <Text style={[styles.wishlistIcon, { color: book.id && isInWishlist(book.id) ? theme.primary : theme.textMuted }]}>★</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -71,9 +63,7 @@ export default function HomeScreen() {
       {/* Wishlist Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Wunschliste
-          </Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Wunschliste</Text>
           <Link href="/wishlist" asChild>
             <TouchableOpacity style={styles.wishlistButton}>
               <Text style={[styles.wishlistIcon, { color: theme.primary }]}>★</Text>
@@ -84,19 +74,17 @@ export default function HomeScreen() {
 
       {/* Recommendations Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          Empfehlungen
-        </Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Empfehlungen</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {recommendations.map((book) => (
             <View key={book.id} style={styles.recommendationCard}>
               <View style={styles.bookCard}>
-                <TouchableOpacity onPress={() => book.id && router.push(`/book/${book.id}`)}>
+                <TouchableOpacity onPress={() => {
+                  setSelectedBook(book);
+                  setDetailModalVisible(true);
+                }}>
                   {book.imageLinks?.thumbnail ? (
-                    <Image
-                      source={{ uri: book.imageLinks.thumbnail.replace('http://', 'https://') }}
-                      style={styles.bookCover}
-                    />
+                    <Image source={{ uri: book.imageLinks.thumbnail.replace('http://', 'https://') }} style={styles.bookCover} />
                   ) : (
                     <View style={[styles.bookCover, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
                       <Text style={{ color: theme.textMuted }}>No Cover</Text>
@@ -104,23 +92,16 @@ export default function HomeScreen() {
                   )}
                 </TouchableOpacity>
                 <View style={styles.bookInfo}>
-                  <Text style={[styles.bookTitle, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">
-                    {book.title}
-                  </Text>
+                  <Text style={[styles.bookTitle, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">{book.title}</Text>
                   <View style={styles.bookFooter}>
                     {book.authors && (
-                      <Text style={[styles.bookAuthor, { color: theme.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
-                        {book.authors.join(', ')}
-                      </Text>
+                      <Text style={[styles.bookAuthor, { color: theme.textMuted }]} numberOfLines={1} ellipsizeMode="tail">{book.authors.join(', ')}</Text>
                     )}
                     <TouchableOpacity
                       style={[styles.wishlistButton, { backgroundColor: theme.card }]}
                       onPress={() => book.id && toggleWishlist(book.id)}
                     >
-                      <Text style={[
-                        styles.wishlistIcon,
-                        { color: book.id && isInWishlist(book.id) ? theme.primary : theme.textMuted }
-                      ]}>★</Text>
+                      <Text style={[styles.wishlistIcon, { color: book.id && isInWishlist(book.id) ? theme.primary : theme.textMuted }]}>★</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -129,6 +110,43 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
       </View>
+
+      {selectedBook && (
+        <BookDetailModal
+          book={selectedBook}
+          visible={detailModalVisible}
+          onClose={() => setDetailModalVisible(false)}
+          onOpenStatusModal={() => {
+            setDetailModalVisible(false);
+            setTimeout(() => setStatusModalVisible(true), 300);
+          }}
+        />
+      )}
+
+      {selectedBook && (
+        <BookStatusModal
+          visible={statusModalVisible}
+          onClose={() => setStatusModalVisible(false)}
+          onStatusSelect={(status) => {
+            if (!selectedBook?.id) return;
+            const enrichedBook = {
+              ...selectedBook,
+              id: selectedBook.id,
+              status,
+              ownership: 'owned',
+              addedAt: Date.now(),
+            };
+            addBook(enrichedBook, status);
+            setStatusModalVisible(false);
+          }}
+          onRemove={() => {
+            if (selectedBook?.id) removeBook(selectedBook.id);
+            setStatusModalVisible(false);
+          }}
+          currentStatus={getBookStatus(selectedBook.id)}
+          title={selectedBook.title}
+        />
+      )}
     </ScrollView>
   );
 }

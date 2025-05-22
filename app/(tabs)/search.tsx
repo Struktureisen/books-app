@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import BookCard from '../../components/BookCard';
+import BookDetailModal from '../../components/BookDetailModal';
+import BookStatusModal from '../../components/BookStatusModal';
 import { useBooks } from '../../context/BooksContext';
 import { useTheme } from '../../context/ThemeContext';
-import BookStatusModal from '../../components/BookStatusModal';
-import { BookData } from '../../types';
+import { BookData, BookWithStatus, ReadingStatus } from '../../types';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,6 +22,10 @@ export default function SearchScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { theme } = useTheme();
   const { addBook, getBookStatus, removeBook, toggleWishlist } = useBooks();
+
+  const [selectedBook, setSelectedBook] = useState<BookWithStatus | null>(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   const searchBooks = async () => {
     if (!searchQuery.trim()) {
@@ -32,9 +46,17 @@ export default function SearchScreen() {
       const json = await response.json();
 
       if (json.items && json.items.length > 0) {
-        const books = json.items.map((item: any) => ({
+        const books = json.items.map((item: any): BookData => ({
           id: item.id,
-          ...item.volumeInfo
+          title: item.volumeInfo.title,
+          authors: item.volumeInfo.authors,
+          description: item.volumeInfo.description,
+          imageLinks: item.volumeInfo.imageLinks,
+          publishedDate: item.volumeInfo.publishedDate,
+          publisher: item.volumeInfo.publisher,
+          pageCount: item.volumeInfo.pageCount,
+          categories: item.volumeInfo.categories,
+          averageRating: item.volumeInfo.averageRating,
         }));
         setSearchResults(books);
       } else {
@@ -50,47 +72,53 @@ export default function SearchScreen() {
     }
   };
 
-  const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
   const handleBookPress = (book: BookData) => {
-    setSelectedBook(book);
-    setModalVisible(true);
+    const bookId = book.id || Date.now().toString();
+    const enrichedBook: BookWithStatus = {
+      ...book,
+      id: bookId,
+      status: 'wantToRead', // ← explizit setzen
+  ownership: 'wishlist',
+  addedAt: Date.now(),
+    };
+    setSelectedBook(enrichedBook);
+    setDetailModalVisible(true);
+    setStatusModalVisible(false); // Ensure status modal is closed
   };
 
-  const handleStatusSelect = (status: 'reading' | 'read' | 'wantToRead') => {
-    if (selectedBook) {
-      const bookWithId = {
-        ...selectedBook,
-        id: selectedBook.id || Date.now().toString(),
-      };
-      addBook(bookWithId, status);
-      setModalVisible(false);
-      setSelectedBook(null);
-    }
+  const handleStatusSelect = (status: ReadingStatus) => {
+    if (!selectedBook?.id) return;
+    const bookWithStatus: BookWithStatus = {
+      ...selectedBook,
+      status,
+      ownership: 'owned',
+      addedAt: Date.now(),
+    };
+    addBook(bookWithStatus, status);
+    setStatusModalVisible(false);
+    setDetailModalVisible(false); // Close both modals
   };
 
   const handleRemove = () => {
     if (selectedBook?.id) {
       removeBook(selectedBook.id);
-      setModalVisible(false);
-      setSelectedBook(null);
+      setStatusModalVisible(false);
+      setDetailModalVisible(false); // Close both modals
     }
-  };
-
-  const handleWishlistToggle = (book: BookData) => {
-    toggleWishlist(book);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.searchContainer}>
         <TextInput
-          style={[styles.searchInput, { 
-            backgroundColor: theme.card,
-            color: theme.text,
-            borderColor: theme.border
-          }]}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: theme.card,
+              color: theme.text,
+              borderColor: theme.border,
+            },
+          ]}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Suche nach Titel, Autor oder ISBN"
@@ -113,7 +141,7 @@ export default function SearchScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.resultsContainer}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.resultsContent}
@@ -124,17 +152,33 @@ export default function SearchScreen() {
             book={book}
             onPress={() => handleBookPress(book)}
             showWishlistButton={true}
+            showStatus={false}
+            showActions={false}  // Disable direct status modal opening
           />
         ))}
       </ScrollView>
 
+      <BookDetailModal
+        book={selectedBook}
+        visible={detailModalVisible}
+        onClose={() => {
+          setDetailModalVisible(false);
+          setSelectedBook(null);
+          setStatusModalVisible(false); // Ensure status modal is closed when detail modal is closed
+        }}
+        onOpenStatusModal={() => {
+          setDetailModalVisible(false);
+          setTimeout(() => setStatusModalVisible(true), 300);
+        }}
+      />
+
       {selectedBook && (
         <BookStatusModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
+          visible={statusModalVisible}
+          onClose={() => setStatusModalVisible(false)}
           onStatusSelect={handleStatusSelect}
-          onRemove={selectedBook.id && getBookStatus(selectedBook.id) ? handleRemove : undefined}
-          currentStatus={selectedBook.id ? getBookStatus(selectedBook.id) || undefined : undefined}
+          onRemove={selectedBook.id ? handleRemove : undefined}
+          currentStatus={getBookStatus(selectedBook.id) || undefined}
           title={selectedBook.title}
         />
       )}
@@ -172,5 +216,5 @@ const styles = StyleSheet.create({
   },
   resultsContent: {
     paddingBottom: 16,
-  }
+  },
 });

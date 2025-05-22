@@ -1,3 +1,4 @@
+// Bücher werden nun in Reihen gespeichert, von links nach rechts verteilt
 import React, { memo, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useBooks } from '../context';
@@ -33,7 +34,6 @@ const BookCard = ({
   const [isProcessingWishlist, setIsProcessingWishlist] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Fix HTTPS for Google Books API images
   const getSecureImageUrl = (url?: string) => {
     if (!url) return undefined;
     return url.replace('http://', 'https://');
@@ -46,7 +46,6 @@ const BookCard = ({
     if (book.id && !isProcessingWishlist) {
       setIsProcessingWishlist(true);
       toggleWishlist(book.id);
-      // Add a small delay to prevent double-taps
       setTimeout(() => setIsProcessingWishlist(false), 500);
     }
   };
@@ -65,130 +64,102 @@ const BookCard = ({
   };
 
   const CardContent = () => (
-    <View style={[
-      styles.contentContainer,
-      horizontal && styles.horizontalContentContainer
-    ]}>
+    <View style={[styles.contentContainer, horizontal && styles.horizontalContentContainer]}>
       <View style={styles.coverContainer}>
         {thumbnailUrl && (
           <Image
             source={{ uri: thumbnailUrl }}
-            style={[
-              styles.cover,
-              horizontal && styles.horizontalCover
-            ]}
+            style={[styles.cover, horizontal && styles.horizontalCover]}
             resizeMode="cover"
           />
         )}
         {showStatus && currentStatus && (
-          <View style={[
-            styles.statusBadge, 
-            { 
-              backgroundColor: theme.activeStatus,
-              borderColor: theme.activeStatus,
-            }
-          ]}>
-            <Text style={[styles.statusText, { color: theme.text }]}>
-              {currentStatus === 'reading' ? 'Wird gelesen' :
-               currentStatus === 'read' ? 'Gelesen' : 'Möchte lesen'}
-            </Text>
-          </View>
-        )}
+  <View
+    style={[
+      styles.statusBadge,
+      {
+        backgroundColor:
+          currentStatus === 'reading' ? '#007AFF' : // Blau
+          currentStatus === 'read' ? '#34C759' :    // Grün
+          '#FFD60A',                                // Gelb
+        borderColor: 'transparent',
+      }
+    ]}
+  >
+    <Text style={[styles.statusText, { color: '#000' }]}>
+      {currentStatus === 'reading' ? 'Wird gelesen' :
+       currentStatus === 'read' ? 'Gelesen' : 'Möchte lesen'}
+    </Text>
+  </View>
+)}
       </View>
-      <View style={[
-        styles.info,
-        horizontal && styles.horizontalInfo
-      ]}>
-        <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
-          {book.title}
+
+      <View style={[styles.info, horizontal && styles.horizontalInfo]}>
+  <View style={styles.infoWrapper}>
+    <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
+      {book.title}
+    </Text>
+
+    <View style={styles.author}>
+      {Array.isArray(book.authors) && book.authors.length > 0 && (
+        <Text style={[styles.authorText, { color: theme.text }]} numberOfLines={1}>
+          {Array.isArray(book.authors) ? book.authors.join(', ') : ''}
         </Text>
-        <View style={styles.author}>
-          {book.authors && book.authors.length > 0 && (
-            <Text style={[styles.authorText, { color: theme.text }]} numberOfLines={1}>
-              {book.authors.join(', ')}
-            </Text>
-          )}
-          {showWishlistButton && (
-            <TouchableOpacity
-              style={[
-                styles.wishlistButton,
-                inWishlist && { backgroundColor: theme.activeStatus }
-              ]}
-              onPress={handleWishlistToggle}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              activeOpacity={0.6}
-              disabled={isProcessingWishlist}
-            >
-              <Text style={[
-                styles.wishlistIcon,
-                { color: inWishlist ? theme.text : theme.primary }
-              ]}>
-                ★
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        {!horizontal && (
-          <>
-            {book.publishedDate && (
-              <Text style={[styles.details, { color: theme.textMuted }]}>
-                {book.publishedDate.substring(0, 4)}
-              </Text>
-            )}
-            {book.publisher && (
-              <Text style={[styles.details, { color: theme.textMuted }]} numberOfLines={1}>
-                {book.publisher}
-              </Text>
-            )}
-            {book.description && (
-              <Text style={[styles.description, { color: theme.text }]} numberOfLines={2}>
-                {book.description}
-              </Text>
-            )}
-          </>
+      )}
+      {showWishlistButton && (
+        <TouchableOpacity
+          style={[styles.wishlistButton, inWishlist && { backgroundColor: theme.activeStatus }]}
+          onPress={handleWishlistToggle}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.6}
+          disabled={isProcessingWishlist}
+        >
+          <Text style={[styles.wishlistIcon, { color: inWishlist ? theme.text : theme.primary }]}>★</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+
+    {!horizontal && (
+      <View style={styles.detailsContainer}>
+        {book.publishedDate && (
+          <Text style={[styles.details, { color: theme.textMuted }]}>
+            {book.publishedDate.substring(0, 4)}
+          </Text>
+        )}
+        {book.publisher && (
+          <Text style={[styles.details, { color: theme.textMuted }]} numberOfLines={1}>
+            {book.publisher}
+          </Text>
         )}
       </View>
+    )}
+  </View>
+</View>
+
+
       {showRemoveButton && (
-        <TouchableOpacity
-          style={styles.removeButton}
-          onPress={handleRemove}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
+        <TouchableOpacity style={styles.removeButton} onPress={handleRemove} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Text style={[styles.removeButtonText, { color: theme.text }]}>×</Text>
         </TouchableOpacity>
       )}
 
-      <BookStatusModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onStatusSelect={handleStatusSelect}
-        onRemove={handleRemove}
-        currentStatus={currentStatus || undefined}
-        title={book.title}
-      />
+      {showActions && (
+        <BookStatusModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onStatusSelect={handleStatusSelect}
+          onRemove={handleRemove}
+          currentStatus={currentStatus || undefined}
+          title={book.title}
+        />
+      )}
     </View>
   );
 
-  return onPress ? (
-    <TouchableOpacity 
-      style={[
-        styles.container,
-        { backgroundColor: theme.card },
-        horizontal && styles.horizontalContainer
-      ]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <CardContent />
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity 
-      style={[
-        styles.container,
-        { backgroundColor: theme.card },
-        horizontal && styles.horizontalContainer
-      ]}
-      onPress={() => setModalVisible(true)}
+  return (
+    <TouchableOpacity
+      style={[styles.container, { backgroundColor: theme.card }, horizontal && styles.horizontalContainer]}
+      onPress={onPress || (showActions ? () => setModalVisible(true) : undefined)}
       activeOpacity={0.7}
     >
       <CardContent />
@@ -198,94 +169,57 @@ const BookCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
-    marginVertical: 8,
-    marginHorizontal: 16,
+    padding: 6,
+    marginVertical: 4,
+    marginHorizontal: 5,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.1)',
-    height: 240, // Increased to accommodate status below cover
+    flexBasis: '30%',          // oder ca. 48% bei 2 Spalten
+    maxWidth: 140,
+    minWidth: 120,
+    flexGrow: 1,
+    flexShrink: 1,
+    height: 360,
     position: 'relative',
   },
   coverContainer: {
     position: 'relative',
+    alignItems: 'center',
   },
   horizontalContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
+    height: 200,
   },
-  contentContainer: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  horizontalContentContainer: {
-    alignItems: 'center',
-  },
-  cover: {
-    width: 120,
-    height: 180,
-    borderRadius: 4,
-    backgroundColor: '#f0f0f0',
-  },
-  horizontalCover: {
-    width: 120,
-    height: 180,
-  },
+  contentContainer: { flex: 1 },
+  horizontalContentContainer: { flexDirection: 'row', alignItems: 'center' },
+  cover: { width: 115, height: 210, borderRadius: 4, backgroundColor: '#f0f0f0' },
+  horizontalCover: { width: 120, height: 180 },
   info: {
     flex: 1,
-    marginLeft: 15,
-    height: 180,
-    justifyContent: 'flex-start',
-  },
-  horizontalInfo: {
-    marginLeft: 12,
-    height: 180,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    minHeight: 40, // Fixed height for 2 lines
-  },
-  author: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 24, // Fixed height for author line
-    marginBottom: 4,
-  },
-  authorText: {
-    fontSize: 14,
-    flex: 1,
-    marginRight: 8,
-    lineHeight: 24, // Match minHeight for vertical centering
-  },
-  details: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  description: {
-    fontSize: 14,
     marginTop: 8,
+    justifyContent: 'space-between',
+    paddingBottom: 8,
   },
+  horizontalInfo: { marginLeft: 12, height: 180 },
+  title: { fontSize: 13, fontWeight: 'bold', minHeight: 34, marginBottom: 2 },
+  author: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 20, marginBottom: 2 },
+  authorText: { fontSize: 12, flex: 1, marginRight: 8, lineHeight: 18 },
+  detailsContainer: { marginTop: 4 },
+  details: { fontSize: 12, marginBottom: 1 },
   statusBadge: {
-    position: 'absolute',
-    left: 0,
-    top: 190, // Position below cover (180px height + 10px spacing)
-    width: 120, // Match cover width
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    borderWidth: 1,
-    minHeight: 28,
-    alignItems: 'center', // Center text horizontally
+    marginTop: 6,
+  width: 115, // exakt so breit wie das Cover
+  alignSelf: 'center',
+  paddingVertical: 4,
+  borderRadius: 6,
+  alignItems: 'center',
+  justifyContent: 'center',
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
+  statusText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
   wishlistButton: {
     width: 32,
     height: 32,
@@ -300,26 +234,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1,
   },
-  wishlistIcon: {
-    fontSize: 18,
-    lineHeight: 18,
-  },
+  wishlistIcon: { fontSize: 18, lineHeight: 18 },
   removeButton: {
     position: 'absolute',
-    top: -2,// Align with title text
-    right: 15,
-    width: 24,
-    height: 24,
+    top: 2,
+    right: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1,
+    zIndex: 999,
   },
   removeButtonText: {
-    fontSize: 20,
-    lineHeight: 20,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    lineHeight: 18,
     textAlign: 'center',
-    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
+  infoWrapper: {
+  flex: 1,
+  justifyContent: 'space-between',
+  marginTop: 0,
+},
 });
 
 export default memo(BookCard);
